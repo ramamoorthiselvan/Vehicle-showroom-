@@ -21,6 +21,9 @@ class AuthController extends Controller
             'password' => ['required', 'string'],
         ]);
 
+        // only users flagged as admin may sign in to the admin panel
+        $credentials['is_admin'] = true;
+
         if (! Auth::attempt($credentials, $request->boolean('remember'))) {
             return back()
                 ->withInput($request->only('email'))

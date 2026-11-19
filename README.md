@@ -1,165 +1,50 @@
-# Markham Infiniti – Homepage + Model Showroom Admin
+# Markham Infiniti – Vehicle Showroom
 
-Responsive conversion of the supplied homepage design. Only the **Model Showroom**
-section is database-driven; everything else is static, as requested.
+Responsive homepage built from the supplied design. Only the Model Showroom section comes from the database.
 
-**Stack:** Laravel 13 · MySQL · Bootstrap 5 · jQuery · Laravel Sanctum (API tokens)
+**Tech:** Laravel, MySQL, Bootstrap 5, jQuery
 
-## What is included
+## Features
 
-| Area | Details |
-|------|---------|
-| Homepage | Header + navigation, hero banner, welcome text, 4 quick-link circles, Model Showroom slider, footer quick links. Desktop, tablet and mobile layouts (collapsing menu, 4 / 3 / 2 / 1 cards per slide). |
-| Model Showroom | Read from the `model_showrooms` table – **active** rows only, sorted by **display order**. Slider arrows + touch swipe. |
-| Admin panel | Login, model list, add, edit, delete (with confirm dialog), image upload with live preview, active/inactive switch, display order. |
-| REST API (optional) | CRUD for model showrooms, token-protected writes. |
-| Tests | 16 feature tests (homepage, auth, CRUD, validation, image handling, API). |
+- Responsive homepage (header, banner, quick links, model showroom, footer)
+- Model Showroom loaded from MySQL (active models only, sorted by display order)
+- Admin panel: login, list, add, edit, delete, image upload, active/inactive, display order
+- REST API for model showrooms (optional)
 
 ## Setup
 
-Requirements: PHP 8.3+, Composer, MySQL 8, `pdo_mysql`, `fileinfo`, `gd` extensions
-(all present in Laragon / XAMPP).
+1. Install packages: `composer install`
+2. Copy `.env.example` to `.env`, then run `php artisan key:generate`
+3. Create a MySQL database named `vehicle_showroom` and check the DB settings in `.env`
+4. Create tables and sample data: `php artisan migrate --seed`
+5. Link storage for uploaded images: `php artisan storage:link`
+6. Start the site: `php artisan serve` and open http://127.0.0.1:8000
 
-```bash
-# 1. install dependencies
-composer install
-
-# 2. environment
-cp .env.example .env
-php artisan key:generate
-#    then edit .env if your MySQL user/password differ (default: root, no password)
-
-# 3. create an empty database
-mysql -uroot -e "CREATE DATABASE vehicle_showroom CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci"
-
-# 4. tables + sample data (admin user + 6 sample vehicles with images)
-php artisan migrate --seed
-
-# 5. make uploaded images publicly reachable (public/storage -> storage/app/public)
-php artisan storage:link
-
-# 6. run
-php artisan serve        # http://127.0.0.1:8000
-```
-
-With Laragon you can also just open `http://vehicle-showroom.test` (set `APP_URL` accordingly).
-No `npm install` is needed – Bootstrap, jQuery and Google Fonts load from CDNs, so an internet
-connection is required when viewing the site.
-
-### Alternative: import the SQL dump
-
-`database/vehicle_showroom.sql` contains the full schema and the sample data.
-If you import it instead of running `migrate --seed`, also copy the four pictures in
-`public/assets/images/sample-vehicles/` into `storage/app/public/models/` as `seed-q50.png`,
-`seed-qx70.png`, `seed-qx50.png`, `seed-qx60.png` (rows 5 and 6 reuse `seed-q50-hybrid.png` /
-`seed-qx80.png`) – or simply run the seeder, which does this for you.
 
 ## Admin login
 
-| URL | `/admin/login` |
-|-----|----------------|
-| Email | `admin@markham.test` |
-| Password | `Admin@12345` |
+- URL: `/admin/login`
+- Email: `admin@markham.test`
+- Password: `Admin@12345`
 
-Change this password before deploying anywhere public.
+## API
 
-## Sample data
+| Method | URL | Login needed |
+|--------|-----|--------------|
+| POST | `/api/login` | No |
+| GET | `/api/model-showrooms` | No |
+| GET | `/api/model-showrooms/{id}` | No |
+| POST | `/api/model-showrooms` | Yes |
+| PUT | `/api/model-showrooms/{id}` | Yes |
+| DELETE | `/api/model-showrooms/{id}` | Yes |
 
-Taken from the design:
+Login returns a token. Send it as `Authorization: Bearer <token>` and `Accept: application/json`.
+To update with an image, send a POST with `_method=PUT`.
 
-| Model | Year | Price |
-|-------|------|-------|
-| Q50  | 2014 | $37,500 |
-| QX70 | 2014 | $53,350 |
-| QX50 | 2014 | $37,900 |
-| QX60 | 2014 | $43,000 |
-
-Two extra rows (**Q50 Hybrid** – active, **QX80** – *inactive*) are added only so the slider
-arrows and the active/inactive filter can be demonstrated. Delete them in the admin if not wanted.
-
-### Table `model_showrooms`
-
-| Column | Type | Notes |
-|--------|------|-------|
-| `id` | bigint, PK | |
-| `model_name` | varchar(100) | e.g. `Q50` |
-| `year` | smallint unsigned | |
-| `price` | decimal(10,2) | shown as `Starting at $37,500` |
-| `image` | varchar(255) null | path inside `storage/app/public` |
-| `status` | tinyint(1) | 1 = active, 0 = inactive |
-| `display_order` | int unsigned | lowest first |
-| `created_at`, `updated_at` | timestamps | |
-
-## REST API
-
-Base URL: `/api`. Reads are public; writes need a bearer token.
-
-| Method | Endpoint | Auth | Description |
-|--------|----------|------|-------------|
-| POST | `/api/login` | – | `email`, `password` → `{ "token": "..." }` |
-| GET | `/api/model-showrooms` | – | Active models, ordered |
-| GET | `/api/model-showrooms/{id}` | – | One active model |
-| POST | `/api/model-showrooms` | Bearer | Create (multipart: `model_name`, `year`, `price`, `image`, optional `status`, `display_order`) |
-| PUT/PATCH | `/api/model-showrooms/{id}` | Bearer | Update – send only the fields to change |
-| DELETE | `/api/model-showrooms/{id}` | Bearer | Delete (also removes the image) |
-| POST | `/api/logout` | Bearer | Revoke the current token |
-
-Example:
-
-```bash
-TOKEN=$(curl -s -X POST http://127.0.0.1:8000/api/login \
-  -H "Accept: application/json" \
-  -d "email=admin@markham.test" -d "password=Admin@12345" | php -r 'echo json_decode(stream_get_contents(STDIN))->token;')
-
-# create
-curl -X POST http://127.0.0.1:8000/api/model-showrooms \
-  -H "Accept: application/json" -H "Authorization: Bearer $TOKEN" \
-  -F model_name=QX30 -F year=2016 -F price=39900 -F image=@car.png
-
-# update (PHP cannot read multipart bodies on a real PUT, so use POST + _method)
-curl -X POST http://127.0.0.1:8000/api/model-showrooms/7 \
-  -H "Accept: application/json" -H "Authorization: Bearer $TOKEN" \
-  -F _method=PUT -F price=41000
-# (a plain JSON PUT without an image works as well)
-```
-
-## Project structure (the parts that matter)
-
-```
-app/
-  Models/ModelShowroom.php                 scopes (active/ordered), price + image accessors
-  Services/ShowroomImage.php               store / replace / delete uploaded pictures
-  Http/
-    Controllers/HomeController.php         homepage
-    Controllers/Admin/AuthController.php   admin login/logout
-    Controllers/Admin/ModelShowroomController.php   admin CRUD
-    Controllers/Api/…                      REST API
-    Requests/ModelShowroomRequest.php      validation shared by admin + API
-    Resources/ModelShowroomResource.php    API JSON shape
-database/
-  migrations/…create_model_showrooms_table.php
-  seeders/                                 admin user + sample vehicles (images are in public/assets/images/sample-vehicles/)
-  vehicle_showroom.sql                     ready-made dump
-resources/views/
-  layouts/app.blade.php, partials/         public layout, header, footer
-  home.blade.php                           homepage
-  admin/…                                  login, list, create/edit form
-public/assets/{css,js,images}              style.css, main.js, admin.css, design assets
-tests/Feature/ModelShowroomTest.php
-```
-
-## Running the tests
-
-```bash
-php artisan test
-```
-
-(Uses an in-memory SQLite database, so your MySQL data is not touched.)
 
 ## Notes
 
-* Navigation items, quick-link circles, social icons and footer links have no destination
-  pages in this task, so they point to `#`.
-* The hero slider dots are decorative – only one banner image was supplied.
-* "Dealership Hours" content is placeholder text; no hours were given in the design.
-* The "powered by e-DEALER.CA" mark is recreated as text because the logo file was not in the assets.
+- Sample vehicle images are in `public/assets/images/sample-vehicles/`.
+- Q50 Hybrid and QX80 (inactive) are extra sample rows; delete them if not needed.
+- Menu links point to `#` because no other pages were requested.
+- Dealership hours are placeholder text.

@@ -16,6 +16,11 @@ return Application::configure(basePath: dirname(__DIR__))
         // Guests hitting /admin/* go to the admin login; logged-in admins skip it.
         $middleware->redirectGuestsTo(fn () => route('admin.login'));
         $middleware->redirectUsersTo(fn () => route('admin.models.index'));
+
+        // short name used in routes/web.php: ->middleware('admin')
+        $middleware->alias([
+            'admin' => \App\Http\Middleware\AdminMiddleware::class,
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(

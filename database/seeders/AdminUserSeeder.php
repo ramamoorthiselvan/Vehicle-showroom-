@@ -12,7 +12,7 @@ class AdminUserSeeder extends Seeder
         // The User model hashes the password through its "hashed" cast.
         User::updateOrCreate(
             ['email' => 'admin@markham.test'],
-            ['name' => 'Administrator', 'password' => 'Admin@12345']
+            ['name' => 'Administrator', 'password' => 'Admin@12345', 'is_admin' => true]
         );
     }
 }
