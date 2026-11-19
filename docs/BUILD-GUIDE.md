@@ -153,7 +153,7 @@ class ModelShowroom extends Model
 ```bash
 php artisan make:seeder ModelShowroomSeeder
 ```
-Put 4 car images (from the ZIP: `car_01..car_04`) in `database/seeders/sample-images/` as `q50.png, qx70.png, qx50.png, qx60.png`.
+Put 4 car images (from the ZIP: `car_01..car_04`) in `public/assets/images/sample-vehicles/` as `q50.png, qx70.png, qx50.png, qx60.png`.
 
 **Edit** `database/seeders/ModelShowroomSeeder.php`:
 ```php
@@ -169,7 +169,7 @@ public function run(): void
     foreach ($models as $row) {
         // copy the sample picture into storage/app/public/models
         $path = 'models/seed-'.strtolower($row['model_name']).'.png';
-        Storage::disk('public')->put($path, File::get(database_path('seeders/sample-images/'.$row['file'])));
+        Storage::disk('public')->put($path, File::get(public_path('assets/images/sample-vehicles/'.$row['file'])));
 
         ModelShowroom::updateOrCreate(
             ['model_name' => $row['model_name'], 'year' => $row['year']],   // find by this

@@ -27,7 +27,7 @@ class ModelShowroomSeeder extends Seeder
             unset($row['file']);
 
             $target = 'models/seed-'.strtolower(str_replace(' ', '-', $row['model_name'])).'.png';
-            Storage::disk('public')->put($target, File::get(database_path('seeders/sample-images/'.$file)));
+            Storage::disk('public')->put($target, File::get(public_path('assets/images/sample-vehicles/'.$file)));
 
             ModelShowroom::updateOrCreate(
                 ['model_name' => $row['model_name'], 'year' => $row['year']],

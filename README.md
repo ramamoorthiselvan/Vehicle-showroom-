@@ -50,7 +50,7 @@ connection is required when viewing the site.
 
 `database/vehicle_showroom.sql` contains the full schema and the sample data.
 If you import it instead of running `migrate --seed`, also copy the four pictures in
-`database/seeders/sample-images/` into `storage/app/public/models/` as `seed-q50.png`,
+`public/assets/images/sample-vehicles/` into `storage/app/public/models/` as `seed-q50.png`,
 `seed-qx70.png`, `seed-qx50.png`, `seed-qx60.png` (rows 5 and 6 reuse `seed-q50-hybrid.png` /
 `seed-qx80.png`) – or simply run the seeder, which does this for you.
 
@@ -138,7 +138,7 @@ app/
     Resources/ModelShowroomResource.php    API JSON shape
 database/
   migrations/…create_model_showrooms_table.php
-  seeders/                                 admin user + sample vehicles (+ sample-images/)
+  seeders/                                 admin user + sample vehicles (images are in public/assets/images/sample-vehicles/)
   vehicle_showroom.sql                     ready-made dump
 resources/views/
   layouts/app.blade.php, partials/         public layout, header, footer
